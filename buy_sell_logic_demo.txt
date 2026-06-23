@@ -1,0 +1,32 @@
+//@version=6
+indicator("Lesson 5 Buy Sell Logic Demo", overlay=true)
+
+fastLength = input.int(9, "Fast EMA", minval=1)
+slowLength = input.int(21, "Slow EMA", minval=1)
+rsiLength = input.int(14, "RSI Length", minval=1)
+volumeLength = input.int(20, "Volume Average", minval=1)
+
+fastEma = ta.ema(close, fastLength)
+slowEma = ta.ema(close, slowLength)
+plot(fastEma, title="Fast EMA", color=color.aqua, linewidth=2)
+plot(slowEma, title="Slow EMA", color=color.orange, linewidth=2)
+
+rsiValue = ta.rsi(close, rsiLength)
+[macdLine, signalLine, _] = ta.macd(close, 12, 26, 9)
+volumeAverage = ta.sma(volume, volumeLength)
+volumeReady = volume > volumeAverage
+plotchar(volumeReady, title="Volume Filter", char="V", location=location.bottom, color=color.yellow)
+
+trendBull = fastEma > slowEma
+trendBear = fastEma < slowEma
+momentumBull = rsiValue > 50
+momentumBear = rsiValue < 50
+macdBull = macdLine > signalLine
+macdBear = macdLine < signalLine
+
+buySignal = ta.crossover(fastEma, slowEma) and momentumBull and macdBull and volumeReady
+sellSignal = ta.crossunder(fastEma, slowEma) and momentumBear and macdBear and volumeReady
+
+plotshape(buySignal, title="Buy Label", style=shape.labelup, location=location.belowbar, color=color.lime, text="Buy", textcolor=color.white, size=size.small)
+plotshape(sellSignal, title="Sell Label", style=shape.labeldown, location=location.abovebar, color=color.red, text="Sell", textcolor=color.white, size=size.small)
+bgcolor(trendBull ? color.new(color.green, 92) : trendBear ? color.new(color.red, 92) : na, title="Trend Background")
